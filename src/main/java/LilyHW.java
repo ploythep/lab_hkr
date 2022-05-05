@@ -1,4 +1,7 @@
 import java.util.*;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class LilyHW {
 
@@ -43,8 +46,8 @@ public class LilyHW {
 
     public int doHW2(List<Integer> arr) {
 
-        HashMap<Integer, Integer> indexMap1 = new HashMap<>();
-        HashMap<Integer, Integer> indexMap2 = new HashMap<>();
+        Map<Integer, Integer> indexMap1 = new HashMap<>();
+        Map<Integer, Integer> indexMap2 = new HashMap<>();
         List<Integer> tempArr = new ArrayList<>();
         List<Integer> sortedArrNormal = new ArrayList<>();
         List<Integer> sortedArrReverse = new ArrayList<>();
@@ -54,29 +57,37 @@ public class LilyHW {
         Collections.sort(sortedArrNormal);
         Collections.sort(sortedArrReverse, Comparator.reverseOrder());
         // mapping orignal index Integer list
-        arr.forEach(i ->{
-            indexMap1.put(i,arr.indexOf(i));
-            indexMap2.put(i,arr.indexOf(i));
-        });
+        indexMap1 = arr.stream().collect(
+                Collectors.toMap(
+                        (entry) -> entry,
+                        arr::indexOf
+                )
+        );
+        indexMap2.putAll(indexMap1);
         int swapNormal = findSwap(arr, indexMap1, sortedArrNormal);
         int swapReverse = findSwap(tempArr, indexMap2, sortedArrReverse);
 
         return Math.min(swapNormal,swapReverse);
     }
 
-    private int findSwap(List<Integer> arr, Map<Integer, Integer> indexMap, List<Integer> sortedArr) {
+    private int findSwap(List<Integer> unsortArr, Map<Integer, Integer> indexMap, List<Integer> sortedArr) {
         int swap = 0;
-        for (int i = 0; i < arr.size(); i++) {
-            if (arr.get(i) != sortedArr.get(i)){
+        BiFunction<Integer, Integer, Boolean>  findMisMatchIndex = (x, y) -> x != y;
+        for (int i = 0; i < unsortArr.size(); i++) {
+            if (findMisMatchIndex.apply(unsortArr.get(i), sortedArr.get(i))) {
                 swap++;
                 int j = indexMap.get(sortedArr.get(i));
-                indexMap.put(arr.get(i), j);
-                indexMap.put(arr.get(j), i);
-                arr.set(j, arr.get(i));
-                arr.set(i, sortedArr.get(i));
+                indexMap.put(unsortArr.get(i), j);
+                indexMap.put(unsortArr.get(j), i);
+                swap(i, j, unsortArr);
             }
         }
-
         return swap;
+    }
+
+    public static void swap(int x, int y, List<Integer> arr) {
+        int temp = arr.get(x);
+        arr.set(x, arr.get(y));
+        arr.set(y, temp);
     }
 }
